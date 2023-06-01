@@ -38,4 +38,24 @@ class AXplusB implements CalculatingFunction{
     outputUnit():string{return this.outputUnitType;}
 }
 
-export {CalculatingFunction, InchesToCm, CmtoInches, AXplusB};
+
+class Figure {
+    constructor(protected calculator: CalculatingFunction) {
+    }
+
+    generatePoints(): { x: number; y: number; width: number; height: number }[] {
+        const points: { x: number; y: number; width: number; height: number }[] = [];
+
+        for (let i = 0; i < 25; i++) {
+            const x = 10 * i;
+            const y = 300 - 10 * this.calculator.calculate(i);
+            const width = 3;
+            const height = 3;
+            points.push({x, y, width, height});
+        }
+
+        return points;
+    }
+}
+
+export {CalculatingFunction, InchesToCm, CmtoInches, AXplusB, Figure};

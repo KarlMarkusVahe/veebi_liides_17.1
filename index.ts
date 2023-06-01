@@ -1,76 +1,72 @@
-import express from 'express';
-import { Request, Response } from 'express';
-import path from 'path';
-import { CalculatingFunction, InchesToCm, CmtoInches, AXplusB} from './calc';
+import express, { Request, Response } from 'express';
+import { CalculatingFunction, InchesToCm, CmtoInches, AXplusB, Figure } from './calc';
 
 const app = express();
-const port = 3000;
-
-app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-
 app.use(express.urlencoded({ extended: true }));
 
+let calculatingFunction: CalculatingFunction | null = null;
+
 app.get('/', (req: Request, res: Response) => {
-    res.render('index', { conversionType: 'inchesToCm', result: null });
+    res.render('index', { conversionType: 'inchesToCm', result: null, figure: null });
 });
 
 app.post('/', (req: Request, res: Response) => {
-    const { conversionType, inches, cm, a, b } = req.body;
-
-    let calculatingFunction: CalculatingFunction | null = null;
+    const conversionType = req.body.conversionType;
+    let result: { inputValue: number; inputUnit: string; outputValue: number; outputUnit: string } | null = null;
+    let figure: Figure | null = null;
 
     if (conversionType === 'inchesToCm') {
         calculatingFunction = new InchesToCm();
+        const inches = parseFloat(req.body.inputValue);
+        if (!isNaN(inches)) {
+            const cm = calculatingFunction.calculate(inches);
+            result = {
+                inputValue: inches,
+                inputUnit: calculatingFunction.inputUnit(),
+                outputValue: cm,
+                outputUnit: calculatingFunction.outputUnit(),
+            };
+            figure = new Figure(calculatingFunction);
+        }
     } else if (conversionType === 'cmToInches') {
         calculatingFunction = new CmtoInches();
+        const cm = parseFloat(req.body.inputValue);
+        if (!isNaN(cm)) {
+            const inches = calculatingFunction.calculate(cm);
+            result = {
+                inputValue: cm,
+                inputUnit: calculatingFunction.inputUnit(),
+                outputValue: inches,
+                outputUnit: calculatingFunction.outputUnit(),
+            };
+            figure = new Figure(calculatingFunction);
+        }
     } else if (conversionType === 'axPlusB') {
-        const coeficient = parseFloat(a);
-        const intercept = parseFloat(b);
-        calculatingFunction = new AXplusB(coeficient, intercept, 'x', 'y');
-    }
+        const coefficient = parseFloat(req.body.coefficient);
+        const intercept = parseFloat(req.body.intercept);
+        const inputUnitType = req.body.inputUnitType;
+        const outputUnitType = req.body.outputUnitType;
 
-    let result = null;
-    if (calculatingFunction) {
-        let inputValue: number | null = null;
-        let outputValue: number | null = null;
-
-        if (conversionType === 'inchesToCm') {
-            inputValue = parseFloat(inches);
-            if (!isNaN(inputValue)) {
-                outputValue = calculatingFunction.calculate(inputValue);
+        if (!isNaN(coefficient) && !isNaN(intercept)) {
+            calculatingFunction = new AXplusB(coefficient, intercept, inputUnitType, outputUnitType);
+            const x = parseFloat(req.body.inputValue);
+            if (!isNaN(x)) {
+                const y = calculatingFunction.calculate(x);
+                result = {
+                    inputValue: x,
+                    inputUnit: inputUnitType,
+                    outputValue: y,
+                    outputUnit: outputUnitType,
+                };
+                figure = new Figure(calculatingFunction);
             }
-        } else if (conversionType === 'cmToInches') {
-            inputValue = parseFloat(cm);
-            if (!isNaN(inputValue)) {
-                outputValue = calculatingFunction.calculate(inputValue);
-            }
-        } else if (conversionType === 'axPlusB') {
-            inputValue = parseFloat(a);
-            if (!isNaN(inputValue)) {
-                outputValue = calculatingFunction.calculate(inputValue);
-            }
-        }
-
-        if (inputValue !== null && outputValue !== null) {
-            result = { inputValue, outputValue };
         }
     }
 
-    res.render('index', {
-        conversionType,
-        result,
-        inchesToCmInputUnit: calculatingFunction?.inputUnit() || '',
-        inchesToCmOutputUnit: calculatingFunction?.outputUnit() || '',
-        cmToInchesInputUnit: calculatingFunction?.inputUnit() || '',
-        cmToInchesOutputUnit: calculatingFunction?.outputUnit() || '',
-        axPlusBInputUnit: calculatingFunction?.inputUnit() || '',
-        axPlusBOutputUnit: calculatingFunction?.outputUnit() || '',
-        a,
-        b,
-    });
+    res.render('index', { conversionType, result, figure });
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+app.listen(3000, () => {
+    console.log('Server started on port 3000');
 });

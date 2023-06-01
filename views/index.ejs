@@ -1,58 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>Converter</title>
+    <title>Conversion Website</title>
 </head>
 <body>
-<h1>Converter</h1>
+<h1>Conversion Website</h1>
 
-<form method="POST" id="conversion-form">
-    <label for="conversion-type">Conversion Type:</label>
-    <select id="conversion-type" name="conversionType">
+<h2>Inches to Centimeters:</h2>
+<form method="post" action="/">
+    <select name="conversionType">
         <option value="inchesToCm" <% if (conversionType === 'inchesToCm') { %>selected<% } %>>Inches to Centimeters</option>
         <option value="cmToInches" <% if (conversionType === 'cmToInches') { %>selected<% } %>>Centimeters to Inches</option>
-        <option value="axPlusB" <% if (conversionType === 'axPlusB') { %>selected<% } %>>AX + B</option>
+        <option value="axPlusB" <% if (conversionType === 'axPlusB') { %>selected<% } %>>Custom (Ax + B)</option>
     </select>
-
-    <% if (conversionType === 'inchesToCm') { %>
-        <h2>Inches to Centimeters:</h2>
-        <label for="inches">Inches:</label>
-        <input type="text" id="inches" name="inches" required>
-    <% } else if (conversionType === 'cmToInches') { %>
-        <h2>Centimeters to Inches:</h2>
-        <label for="cm">Centimeters:</label>
-        <input type="text" id="cm" name="cm" required>
-    <% } else if (conversionType === 'axPlusB') { %>
-        <h2>AX + B:</h2>
-        <label for="a">A:</label>
-        <input type="text" id="a" name="a" required>
-        <label for="b">B:</label>
-        <input type="text" id="b" name="b" required>
+    <% if (conversionType === 'axPlusB') { %>
+        <label for="coefficient">Coefficient:</label>
+        <input type="text" id="coefficient" name="coefficient" required>
+        <br>
+        <label for="intercept">Intercept:</label>
+        <input type="text" id="intercept" name="intercept" required>
+        <br>
+        <label for="inputUnitType">Input Unit:</label>
+        <input type="text" id="inputUnitType" name="inputUnitType" required>
+        <br>
+        <label for="outputUnitType">Output Unit:</label>
+        <input type="text" id="outputUnitType" name="outputUnitType" required>
+        <br>
     <% } %>
-
+    <label for="inputValue">Input Value:</label>
+    <input type="text" id="inputValue" name="inputValue" required>
+    <br>
     <button type="submit">Convert</button>
 </form>
 
 <% if (result !== null) { %>
     <h3>Conversion Result:</h3>
     <% if (conversionType === 'inchesToCm') { %>
-        <p>Inches: <%= result.inputValue %> <%= inchesToCmInputUnit %></p>
-        <p>Centimeters: <%= result.outputValue %> <%= inchesToCmOutputUnit %></p>
+        <p>Inches: <%= result.inputValue %> <%= result.inputUnit %></p>
+        <p>Centimeters: <%= result.outputValue %> <%= result.outputUnit %></p>
     <% } else if (conversionType === 'cmToInches') { %>
-        <p>Centimeters: <%= result.inputValue %> <%= cmToInchesInputUnit %></p>
-        <p>Inches: <%= result.outputValue %> <%= cmToInchesOutputUnit %></p>
+        <p>Centimeters: <%= result.inputValue %> <%= result.inputUnit %></p>
+        <p>Inches: <%= result.outputValue %> <%= result.outputUnit %></p>
     <% } else if (conversionType === 'axPlusB') { %>
-        <p><%= a %> vahemaa <%= result.inputValue %> <%= axPlusBInputUnit %> = <%= result.outputValue.toFixed(2) %> hind <%= axPlusBOutputUnit %></p>
+        <p>x: <%= result.inputValue %> <%= result.inputUnit %></p>
+        <p>y: <%= result.outputValue %> <%= result.outputUnit %></p>
     <% } %>
 <% } %>
 
-<script>
-    const conversionForm = document.getElementById('conversion-form');
-    const conversionTypeDropdown = document.getElementById('conversion-type');
-    conversionTypeDropdown.addEventListener('change', function () {
-        conversionForm.submit();
-    });
-</script>
+<% if (figure) { %>
+    <h3>Figure:</h3>
+    <svg width="300" height="300">
+        <% figure.generatePoints().forEach(function(point) { %>
+            <rect x="<%= point.x %>" y="<%= point.y %>" width="<%= point.width %>" height="<%= point.height %>"></rect>
+        <% }); %>
+    </svg>
+<% } %>
 </body>
 </html>
